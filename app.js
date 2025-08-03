@@ -1,8 +1,6 @@
-// Firebase setup
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import {
-  getFirestore, collection, getDocs, addDoc
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+// Firebase config (use your own from Firebase Console)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA6Dy72K2gZLH39Pp0sF2zjPi4kSSRUEN4",
@@ -10,59 +8,66 @@ const firebaseConfig = {
   projectId: "appstore-e38ef",
   storageBucket: "appstore-e38ef.appspot.com",
   messagingSenderId: "74797914342",
-  appId: "1:74797914342:web:74b730bc4bf7dcf2388327",
-  measurementId: "G-GKQEQWDJJ3"
+  appId: "1:74797914342:web:74b730bc4bf7dcf2388327"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Load Movies from Firestore
-async function loadMovies() {
-  const movieSections = document.getElementById("movie-sections");
-  const moviesRef = collection(db, "movies");
-  const snapshot = await getDocs(moviesRef);
-  const movies = {};
+const movieContainer = document.getElementById("movie-sections");
+const playerContainer = document.getElementById("movie-player");
 
-  snapshot.forEach((doc) => {
+async function loadMovies() {
+  const q = query(collection(db, "movies"), orderBy("title"));
+  const snapshot = await getDocs(q);
+
+  const categories = {};
+
+  snapshot.forEach(doc => {
     const movie = doc.data();
-    if (!movies[movie.category]) movies[movie.category] = [];
-    movies[movie.category].push(movie);
+    if (!categories[movie.category]) categories[movie.category] = [];
+    categories[movie.category].push(movie);
   });
 
-  for (let [category, items] of Object.entries(movies)) {
-    const section = document.createElement("section");
-    section.classList.add("section");
+  movieContainer.innerHTML = "";
 
-    const title = document.createElement("h2");
-    title.textContent = category;
-    section.appendChild(title);
+  for (const [category, movies] of Object.entries(categories)) {
+    const section = document.createElement("div");
+    section.className = "section";
+    section.innerHTML = `<h2>${category}</h2><div class="movie-row"></div>`;
 
-    const row = document.createElement("div");
-    row.classList.add("movie-row");
+    const row = section.querySelector(".movie-row");
 
-    items.forEach((movie) => {
+    movies.forEach(movie => {
       const card = document.createElement("div");
       card.className = "movie-card";
       card.innerHTML = `
-        <img src="${movie.thumbnail}" alt="${movie.title}">
+        <img src="${movie.thumbnail}" alt="${movie.title}" />
         <div class="movie-info">
           <h3>${movie.title}</h3>
-          <button onclick="window.open('${movie.videoUrl}', '_blank')">View</button>
-          <button onclick="window.open('${movie.videoUrl}', '_blank')">Download</button>
+          <button onclick="playMovie('${movie.videoUrl}')">View</button>
+          <a href="${movie.videoUrl}" download><button>Download</button></a>
         </div>
       `;
       row.appendChild(card);
     });
 
-    section.appendChild(row);
-    movieSections.appendChild(section);
+    movieContainer.appendChild(section);
   }
 }
 
-// Handle Upload with password
-document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+window.playMovie = function(videoUrl) {
+  playerContainer.innerHTML = `
+    <video controls autoplay>
+      <source src="${videoUrl}" type="video/mp4" />
+      Your browser does not support video.
+    </video>
+  `;
+};
+
+document.getElementById("uploadForm").addEventListener("submit", async e => {
   e.preventDefault();
+
   const title = document.getElementById("uploadTitle").value;
   const description = document.getElementById("uploadDescription").value;
   const videoUrl = document.getElementById("uploadVideoUrl").value;
@@ -77,14 +82,23 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
 
   try {
     await addDoc(collection(db, "movies"), {
-      title, description, videoUrl, thumbnail, category, views: 0, likes: 0
+      title,
+      description,
+      videoUrl,
+      thumbnail,
+      category,
+      views: 0,
+      likes: 0
     });
-    alert("Movie uploaded successfully.");
-    location.reload();
-  } catch (err) {
+
+    alert("Movie uploaded!");
+    e.target.reset();
+    loadMovies();
+  } catch (error) {
     alert("Upload failed.");
-    console.error(err);
+    console.error(error);
   }
 });
 
+// Load movies on page start
 loadMovies();
