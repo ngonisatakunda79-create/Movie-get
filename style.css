@@ -24,7 +24,8 @@ form {
   margin-bottom: 30px;
 }
 
-form input, form button {
+form input,
+form button {
   padding: 10px;
   font-size: 16px;
   border-radius: 6px;
@@ -62,7 +63,7 @@ form button:hover {
   background: #1e1e1e;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .movie-card img {
@@ -92,4 +93,15 @@ form button:hover {
 
 .movie-info button:hover {
   background: #0056b3;
+}
+
+#movie-player {
+  margin-bottom: 30px;
+}
+
+#movie-player video {
+  width: 100%;
+  max-width: 100%;
+  border: 2px solid #007bff;
+  border-radius: 8px;
 }
