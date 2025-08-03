@@ -1,6 +1,6 @@
-// Firebase config (use your own from Firebase Console)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// Firebase setup
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA6Dy72K2gZLH39Pp0sF2zjPi4kSSRUEN4",
@@ -14,58 +14,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const movieContainer = document.getElementById("movie-sections");
-const playerContainer = document.getElementById("movie-player");
-
-async function loadMovies() {
-  const q = query(collection(db, "movies"), orderBy("title"));
-  const snapshot = await getDocs(q);
-
-  const categories = {};
-
-  snapshot.forEach(doc => {
-    const movie = doc.data();
-    if (!categories[movie.category]) categories[movie.category] = [];
-    categories[movie.category].push(movie);
-  });
-
-  movieContainer.innerHTML = "";
-
-  for (const [category, movies] of Object.entries(categories)) {
-    const section = document.createElement("div");
-    section.className = "section";
-    section.innerHTML = `<h2>${category}</h2><div class="movie-row"></div>`;
-
-    const row = section.querySelector(".movie-row");
-
-    movies.forEach(movie => {
-      const card = document.createElement("div");
-      card.className = "movie-card";
-      card.innerHTML = `
-        <img src="${movie.thumbnail}" alt="${movie.title}" />
-        <div class="movie-info">
-          <h3>${movie.title}</h3>
-          <button onclick="playMovie('${movie.videoUrl}')">View</button>
-          <a href="${movie.videoUrl}" download><button>Download</button></a>
-        </div>
-      `;
-      row.appendChild(card);
-    });
-
-    movieContainer.appendChild(section);
+// Password-protected upload section
+window.checkUploadPassword = function () {
+  const entered = document.getElementById("uploadAccessPassword").value;
+  if (entered === "taku") {
+    document.getElementById("uploadForm").style.display = "block";
+    document.getElementById("passwordSection").style.display = "none";
+  } else {
+    alert("Incorrect password.");
   }
-}
-
-window.playMovie = function(videoUrl) {
-  playerContainer.innerHTML = `
-    <video controls autoplay>
-      <source src="${videoUrl}" type="video/mp4" />
-      Your browser does not support video.
-    </video>
-  `;
 };
 
-document.getElementById("uploadForm").addEventListener("submit", async e => {
+// Upload form
+document.getElementById("uploadForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const title = document.getElementById("uploadTitle").value;
@@ -73,12 +34,6 @@ document.getElementById("uploadForm").addEventListener("submit", async e => {
   const videoUrl = document.getElementById("uploadVideoUrl").value;
   const thumbnail = document.getElementById("uploadThumbnail").value;
   const category = document.getElementById("uploadCategory").value;
-  const password = document.getElementById("uploadPassword").value;
-
-  if (password !== "taku") {
-    alert("Incorrect password.");
-    return;
-  }
 
   try {
     await addDoc(collection(db, "movies"), {
@@ -86,19 +41,36 @@ document.getElementById("uploadForm").addEventListener("submit", async e => {
       description,
       videoUrl,
       thumbnail,
-      category,
-      views: 0,
-      likes: 0
+      category
     });
-
     alert("Movie uploaded!");
-    e.target.reset();
+    document.getElementById("uploadForm").reset();
     loadMovies();
-  } catch (error) {
+  } catch (err) {
+    console.error("Upload failed", err);
     alert("Upload failed.");
-    console.error(error);
   }
 });
 
-// Load movies on page start
+// Load and display movies
+async function loadMovies() {
+  const querySnapshot = await getDocs(collection(db, "movies"));
+  const movieContainer = document.getElementById("movieContainer");
+  movieContainer.innerHTML = "";
+
+  querySnapshot.forEach((doc) => {
+    const movie = doc.data();
+    const div = document.createElement("div");
+    div.className = "movie";
+    div.innerHTML = `
+      <img src="${movie.thumbnail}" alt="${movie.title}" />
+      <h3>${movie.title}</h3>
+      <p>${movie.description}</p>
+      <a href="${movie.videoUrl}" target="_blank">View</a> |
+      <a href="${movie.videoUrl}" download>Download</a>
+    `;
+    movieContainer.appendChild(div);
+  });
+}
+
 loadMovies();
