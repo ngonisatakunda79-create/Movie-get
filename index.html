@@ -5,36 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dhogo</title>
   <link rel="stylesheet" href="style.css" />
+  <script>
+    UPLOADCARE_PUBLIC_KEY = 'f77e2afd69e72fdae840';
+  </script>
+  <script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
+  <script type="module" src="app.js" defer></script>
 </head>
 <body>
-  <header>Dhogo</header>
+  <header><h1>Dhogo 🎬</h1></header>
+
   <main>
-    <!-- Password unlock section -->
-    <div id="passwordSection">
-      <input type="password" id="uploadAccessPassword" placeholder="Enter upload password" />
-      <button onclick="checkUploadPassword()">Unlock Upload</button>
-    </div>
+    <section id="loginSection">
+      <input type="password" id="passwordInput" placeholder="Enter password" />
+      <button id="unlockBtn">Unlock Upload</button>
+    </section>
 
-    <!-- Upload Form (hidden by default) -->
-    <form id="uploadForm" style="display: none;">
-      <h2>Upload Movie</h2>
-      <input type="text" id="uploadTitle" placeholder="Title" required />
-      <input type="text" id="uploadDescription" placeholder="Description" required />
-      <input type="text" id="uploadVideoUrl" placeholder="Direct .mp4 Video URL" required />
-      <input type="text" id="uploadThumbnail" placeholder="Thumbnail URL" required />
-      <input type="text" id="uploadCategory" placeholder="Category" required />
-      <button type="submit">Upload</button>
-    </form>
+    <section id="uploadSection" class="hidden">
+      <h2>Upload a Movie</h2>
+      <input type="hidden" role="uploadcare-uploader" data-clearable />
+    </section>
 
-    <!-- Online Movies -->
-    <h2>Online Movies</h2>
-    <div id="movieContainer"></div>
-
-    <!-- Offline Downloads -->
-    <h2 id="offlineMovies">Offline Downloads</h2>
-    <div id="offlineContainer"></div>
+    <h2>Latest Movies</h2>
+    <div id="movieList" class="movie-container"></div>
   </main>
-
-  <script type="module" src="app.js"></script>
 </body>
 </html>
