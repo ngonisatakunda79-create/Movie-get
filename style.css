@@ -1,1 +1,95 @@
-h
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+}
+
+header {
+  background: #222;
+  padding: 16px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+main {
+  padding: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+form input, form button {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+}
+
+form button {
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+form button:hover {
+  background-color: #0056b3;
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
+.section h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.movie-row {
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  padding-bottom: 10px;
+}
+
+.movie-card {
+  min-width: 200px;
+  background: #1e1e1e;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.movie-card img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+}
+
+.movie-info {
+  padding: 10px;
+}
+
+.movie-info h3 {
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+
+.movie-info button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  margin-right: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.movie-info button:hover {
+  background: #0056b3;
+}
