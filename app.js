@@ -1,4 +1,3 @@
-// Firebase setup
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
@@ -14,7 +13,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Password-protected upload section
+// Unlock upload form
 window.checkUploadPassword = function () {
   const entered = document.getElementById("uploadAccessPassword").value;
   if (entered === "taku") {
@@ -25,52 +24,76 @@ window.checkUploadPassword = function () {
   }
 };
 
-// Upload form
+// Upload movie to Firestore
 document.getElementById("uploadForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const title = document.getElementById("uploadTitle").value;
-  const description = document.getElementById("uploadDescription").value;
-  const videoUrl = document.getElementById("uploadVideoUrl").value;
-  const thumbnail = document.getElementById("uploadThumbnail").value;
-  const category = document.getElementById("uploadCategory").value;
+  const movie = {
+    title: document.getElementById("uploadTitle").value,
+    description: document.getElementById("uploadDescription").value,
+    videoUrl: document.getElementById("uploadVideoUrl").value,
+    thumbnail: document.getElementById("uploadThumbnail").value,
+    category: document.getElementById("uploadCategory").value,
+  };
 
   try {
-    await addDoc(collection(db, "movies"), {
-      title,
-      description,
-      videoUrl,
-      thumbnail,
-      category
-    });
+    await addDoc(collection(db, "movies"), movie);
     alert("Movie uploaded!");
     document.getElementById("uploadForm").reset();
     loadMovies();
   } catch (err) {
-    console.error("Upload failed", err);
     alert("Upload failed.");
+    console.error(err);
   }
 });
 
-// Load and display movies
+// Load movies from Firestore
 async function loadMovies() {
   const querySnapshot = await getDocs(collection(db, "movies"));
-  const movieContainer = document.getElementById("movieContainer");
-  movieContainer.innerHTML = "";
+  const container = document.getElementById("movieContainer");
+  container.innerHTML = "";
 
   querySnapshot.forEach((doc) => {
     const movie = doc.data();
-    const div = document.createElement("div");
-    div.className = "movie";
-    div.innerHTML = `
-      <img src="${movie.thumbnail}" alt="${movie.title}" />
-      <h3>${movie.title}</h3>
-      <p>${movie.description}</p>
-      <a href="${movie.videoUrl}" target="_blank">View</a> |
-      <a href="${movie.videoUrl}" download>Download</a>
-    `;
-    movieContainer.appendChild(div);
+    const div = createMovieElement(movie);
+    container.appendChild(div);
+  });
+}
+
+function createMovieElement(movie, isOffline = false) {
+  const div = document.createElement("div");
+  div.className = "movie";
+  div.innerHTML = `
+    <img src="${movie.thumbnail}" alt="${movie.title}" />
+    <h3>${movie.title}</h3>
+    <p>${movie.description}</p>
+    <a href="${movie.videoUrl}" target="_blank">View</a> |
+    <a href="${movie.videoUrl}" download>Download</a>
+    ${!isOffline ? `<br/><button onclick='saveOffline(${JSON.stringify(movie)})'>Save Offline</button>` : ""}
+  `;
+  return div;
+}
+
+// Save to localStorage
+window.saveOffline = function (movie) {
+  let saved = JSON.parse(localStorage.getItem("offlineMovies") || "[]");
+  saved.push(movie);
+  localStorage.setItem("offlineMovies", JSON.stringify(saved));
+  alert("Saved offline!");
+  loadOfflineMovies();
+};
+
+// Load offline movies
+function loadOfflineMovies() {
+  const offlineList = JSON.parse(localStorage.getItem("offlineMovies") || "[]");
+  const offlineContainer = document.getElementById("offlineContainer");
+  offlineContainer.innerHTML = "";
+
+  offlineList.forEach((movie) => {
+    const div = createMovieElement(movie, true);
+    offlineContainer.appendChild(div);
   });
 }
 
 loadMovies();
+loadOfflineMovies();
