@@ -1,75 +1,62 @@
 body {
+  font-family: sans-serif;
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #111;
-  color: #fff;
+  background: #f4f4f4;
+  color: #333;
 }
 
 header {
   background: #222;
-  padding: 16px;
+  color: white;
+  padding: 1rem;
   text-align: center;
-  font-size: 28px;
-  font-weight: bold;
 }
 
 main {
-  padding: 20px;
+  padding: 1rem;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 30px;
+#loginSection, #uploadSection {
+  margin-bottom: 1rem;
 }
 
-form input, form button {
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: none;
+input[type="password"] {
+  padding: 0.5rem;
+  width: 200px;
 }
 
-form button {
-  background-color: #007bff;
-  color: white;
+button {
+  padding: 0.5rem 1rem;
+  margin-left: 10px;
   cursor: pointer;
 }
 
-#movieContainer, #offlineContainer {
+.movie-container {
   display: flex;
   overflow-x: auto;
-  gap: 20px;
-  padding-bottom: 10px;
+  gap: 1rem;
+  padding: 1rem 0;
 }
 
-.movie {
-  background: #222;
-  padding: 10px;
+.movie-card {
+  flex: 0 0 auto;
+  width: 250px;
+  background: white;
   border-radius: 8px;
-  min-width: 200px;
-  max-width: 200px;
-  flex-shrink: 0;
+  padding: 1rem;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
 }
 
-.movie img {
+.movie-card img {
   width: 100%;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
-.movie h3 {
-  margin: 10px 0 5px;
-  font-size: 18px;
+.movie-card video {
+  width: 100%;
+  margin-top: 0.5rem;
 }
 
-.movie p {
-  font-size: 14px;
-  margin-bottom: 5px;
-}
-
-.movie a {
-  color: #0af;
-  text-decoration: underline;
-  font-size: 14px;
+.hidden {
+  display: none;
 }
