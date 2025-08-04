@@ -16,19 +16,26 @@ main {
   padding: 1rem;
 }
 
-#loginSection, #uploadSection {
+#loginSection,
+#uploadSection {
   margin-bottom: 1rem;
 }
 
-input[type="password"] {
+input[type="password"],
+#searchInput {
   padding: 0.5rem;
   width: 200px;
+  margin-bottom: 10px;
 }
 
 button {
   padding: 0.5rem 1rem;
   margin-left: 10px;
   cursor: pointer;
+}
+
+#searchBar {
+  margin-bottom: 1rem;
 }
 
 .movie-container {
@@ -44,7 +51,7 @@ button {
   background: white;
   border-radius: 8px;
   padding: 1rem;
-  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .movie-card img {
@@ -55,6 +62,17 @@ button {
 .movie-card video {
   width: 100%;
   margin-top: 0.5rem;
+}
+
+.movie-card a {
+  display: block;
+  margin-top: 0.5rem;
+  text-align: center;
+  background: #222;
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem;
+  border-radius: 4px;
 }
 
 .hidden {
