@@ -50,14 +50,28 @@ widget.onUploadComplete(async (info) => {
 });
 
 // Load videos from Firestore
+let allVideos = [];
+
 async function loadVideos() {
   const movieList = document.getElementById('movieList');
   movieList.innerHTML = "";
+  allVideos = [];
+
   const querySnapshot = await getDocs(collection(db, "videos"));
-
   querySnapshot.forEach((doc) => {
-    const { videoUrl, thumbnail } = doc.data();
+    const data = doc.data();
+    allVideos.push(data);
+  });
 
+  displayVideos(allVideos);
+}
+
+// Display videos to the page
+function displayVideos(videos) {
+  const movieList = document.getElementById('movieList');
+  movieList.innerHTML = "";
+
+  videos.forEach(({ videoUrl, thumbnail }) => {
     const card = document.createElement('div');
     card.className = 'movie-card';
     card.innerHTML = `
@@ -68,5 +82,14 @@ async function loadVideos() {
     movieList.appendChild(card);
   });
 }
+
+// Search functionality
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  const searchText = e.target.value.toLowerCase();
+  const filtered = allVideos.filter(({ videoUrl }) =>
+    videoUrl.toLowerCase().includes(searchText)
+  );
+  displayVideos(filtered);
+});
 
 loadVideos();
