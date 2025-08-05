@@ -5,16 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dhogo</title>
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Adsense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4129282381566342" crossorigin="anonymous"></script>
+
+  <!-- Uploadcare -->
   <script>
     UPLOADCARE_PUBLIC_KEY = 'f77e2afd69e72fdae840';
   </script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4129282381566342"
-     crossorigin="anonymous"></script>
   <script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
+
+  <!-- App -->
   <script type="module" src="app.js" defer></script>
 </head>
 <body>
   <header><h1>Dhogo 🎬</h1></header>
+
+  <!-- Adsense Banner -->
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-4129282381566342"
+       data-ad-slot="8065233750"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
 
   <main>
     <section id="loginSection">
@@ -27,23 +43,14 @@
       <input type="hidden" role="uploadcare-uploader" data-clearable />
     </section>
 
-    <section>
+    <!-- Search Box -->
+    <div id="searchContainer">
       <input type="text" id="searchInput" placeholder="Search movies..." />
-    </section>
+      <button id="searchBtn">Search</button>
+    </div>
 
     <h2>Latest Movies</h2>
     <div id="movieList" class="movie-container"></div>
-
-    <!-- AdSense Display Ad -->
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-4129282381566342"
-         data-ad-slot="8065233750"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>
-         (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
   </main>
 </body>
 </html>
