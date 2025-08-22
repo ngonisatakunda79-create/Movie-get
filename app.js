@@ -1,95 +1,129 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+let map, userMarker, destinationMarker, routingControl;
+let userPanned = false;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA6Dy72K2gZLH39Pp0sF2zjPi4kSSRUEN4",
-  authDomain: "appstore-e38ef.firebaseapp.com",
-  projectId: "appstore-e38ef",
-  storageBucket: "appstore-e38ef.appspot.com",
-  messagingSenderId: "74797914342",
-  appId: "1:74797914342:web:74b730bc4bf7dcf2388327",
-  measurementId: "G-GKQEQWDJJ3"
-};
+// Sample POIs in Zimbabwe (replace or expand as needed)
+const POIs = [
+    {name: "St. Mary's School", lat: -17.825, lng: 31.050, type:"school"},
+    {name: "Total Fuel Station", lat: -17.826, lng: 31.051, type:"fuel"},
+    {name: "Main Shop", lat: -17.827, lng: 31.052, type:"shop"},
+    {name: "Growth Point A", lat: -17.828, lng: 31.053, type:"growth"},
+    {name: "Community School", lat: -17.829, lng: 31.054, type:"school"},
+    {name: "Shell Fuel Station", lat: -17.830, lng: 31.055, type:"fuel"},
+    {name: "Village Shop", lat: -17.831, lng: 31.056, type:"shop"},
+    {name: "Growth Point B", lat: -17.832, lng: 31.057, type:"growth"}
+];
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Initialize map directly on page load
+window.addEventListener("load", initMap);
 
-// Password protection
-document.getElementById('unlockBtn').addEventListener('click', () => {
-  const password = document.getElementById('passwordInput').value;
-  if (password === 'taku') {
-    document.getElementById('uploadSection').classList.remove('hidden');
-    document.getElementById('loginSection').classList.add('hidden');
-  } else {
-    alert("Wrong password.");
-  }
-});
+function initMap() {
+    if(!navigator.geolocation) { alert("Geolocation not supported."); return; }
 
-// Uploadcare uploader
-const widget = uploadcare.Widget('[role=uploadcare-uploader]');
-widget.onUploadComplete(async (info) => {
-  const videoUrl = info.cdnUrl;
-  const thumbnail = videoUrl + "/-/preview/";
+    navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
 
-  try {
-    await addDoc(collection(db, "videos"), {
-      videoUrl,
-      thumbnail,
-      createdAt: Date.now()
-    });
-    alert("Uploaded!");
-    loadVideos();
-  } catch (e) {
-    console.error("Error adding video:", e);
-  }
-});
+        map = L.map('map', {
+            zoomControl: true,
+            dragging: true,
+            doubleClickZoom: true,
+            scrollWheelZoom: true
+        }).setView([lat, lng], 17);
 
-// Load videos from Firestore
-let allVideos = [];
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
 
-async function loadVideos() {
-  const movieList = document.getElementById('movieList');
-  movieList.innerHTML = "";
-  allVideos = [];
+        // User marker
+        userMarker = L.marker([lat, lng], {
+            title: "You",
+            icon: L.icon({
+                iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Flat_tick_icon_green.svg',
+                iconSize: [25,25]
+            })
+        }).addTo(map);
 
-  const querySnapshot = await getDocs(collection(db, "videos"));
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    allVideos.push(data);
-  });
+        // Add POIs
+        POIs.forEach(poi => {
+            let iconUrl = poi.type === 'school' ? 'https://upload.wikimedia.org/wikipedia/commons/5/51/School_icon.png' :
+                          poi.type === 'fuel' ? 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Fuel_icon.png' :
+                          poi.type === 'shop' ? 'https://upload.wikimedia.org/wikipedia/commons/6/6f/Shop_icon.png' :
+                          'https://upload.wikimedia.org/wikipedia/commons/2/2f/Growth_icon.png';
+            L.marker([poi.lat, poi.lng], {
+                title: poi.name,
+                icon: L.icon({iconUrl: iconUrl, iconSize:[25,25]})
+            }).addTo(map).bindPopup(poi.name);
+        });
 
-  displayVideos(allVideos);
+        // Center-on-me button
+        const centerControl = L.control({position: 'topleft'});
+        centerControl.onAdd = function() {
+            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            div.innerHTML = '📍';
+            div.style.backgroundColor = 'white';
+            div.style.width = '34px';
+            div.style.height = '34px';
+            div.style.textAlign = 'center';
+            div.style.cursor = 'pointer';
+            div.title = "Center on me";
+            div.onclick = () => {
+                map.setView(userMarker.getLatLng(), 17);
+                userPanned = false;
+            };
+            return div;
+        };
+        centerControl.addTo(map);
+
+        // Click to set destination
+        map.on('click', e => {
+            const destLat = e.latlng.lat;
+            const destLng = e.latlng.lng;
+
+            if(destinationMarker) map.removeLayer(destinationMarker);
+
+            destinationMarker = L.marker([destLat, destLng], {
+                title: "Destination",
+                icon: L.icon({
+                    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/38/Red_flag_icon.svg',
+                    iconSize: [25,25]
+                })
+            }).addTo(map);
+
+            if(routingControl) map.removeControl(routingControl);
+
+            routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(userMarker.getLatLng().lat, userMarker.getLatLng().lng),
+                    L.latLng(destLat, destLng)
+                ],
+                lineOptions: {styles:[{color:'red', opacity:0.9, weight:6}]},
+                routeWhileDragging: false,
+                addWaypoints: false,
+                draggableWaypoints: false,
+                createMarker: () => null
+            }).addTo(map);
+        });
+
+        // Track user location
+        navigator.geolocation.watchPosition(p => {
+            const newLat = p.coords.latitude;
+            const newLng = p.coords.longitude;
+
+            userMarker.setLatLng([newLat, newLng]);
+
+            if(!userPanned) map.panTo([newLat, newLng], {animate:true});
+
+            if(routingControl && destinationMarker) {
+                routingControl.setWaypoints([
+                    L.latLng(newLat, newLng),
+                    L.latLng(destinationMarker.getLatLng().lat, destinationMarker.getLatLng().lng)
+                ]);
+            }
+        }, err => alert("Error getting location: "+err.message), {enableHighAccuracy:true, maximumAge:0, timeout:5000});
+
+        map.on('dragstart', () => userPanned = true);
+        map.on('zoomstart', () => userPanned = true);
+
+    }, err => alert("Error getting initial location: "+err.message), {enableHighAccuracy:true});
 }
-
-// Display videos to the page
-function displayVideos(videos) {
-  const movieList = document.getElementById('movieList');
-  movieList.innerHTML = "";
-
-  videos.forEach(({ videoUrl, thumbnail }) => {
-    const card = document.createElement('div');
-    card.className = 'movie-card';
-    card.innerHTML = `
-      <img src="${thumbnail}" alt="Movie thumbnail" />
-      <video controls src="${videoUrl}"></video>
-      <a href="${videoUrl}" download>Download</a>
-    `;
-    movieList.appendChild(card);
-  });
-}
-
-// Search functionality
-document.getElementById("searchInput").addEventListener("input", (e) => {
-  const searchText = e.target.value.toLowerCase();
-  const filtered = allVideos.filter(({ videoUrl }) =>
-    videoUrl.toLowerCase().includes(searchText)
-  );
-  displayVideos(filtered);
-});
-
-loadVideos();
