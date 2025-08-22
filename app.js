@@ -82,16 +82,21 @@ function uploadNovel() {
     const desc = document.getElementById("novelDesc").value;
     const price = parseFloat(document.getElementById("novelPrice").value) || 0;
 
-    const cover = uploadcare.Widget("[role=uploadcare-uploader]#coverUpload").value();
-    const file = uploadcare.Widget("[role=uploadcare-uploader]#fileUpload").value();
+    const coverWidget = uploadcare.Widget("[role=uploadcare-uploader]#coverUpload");
+    const fileWidget = uploadcare.Widget("[role=uploadcare-uploader]#fileUpload");
 
-    if(!title || !author || !desc || !cover || !file){ alert("Fill all fields."); return; }
+    coverWidget.onUploadComplete(coverInfo => {
+        if(coverInfo.size > 52428800){ alert("Cover too large (max 50 MB)"); return; }
+        fileWidget.onUploadComplete(fileInfo => {
+            if(fileInfo.size > 1073741824){ alert("Novel too large (max 1 GB)"); return; }
 
-    cover.done(url => {
-        file.done(furl => {
-            db.collection("novels").add({ title, author, description: desc, coverURL:url, fileURL:furl, price })
-            .then(()=>{ alert("Novel uploaded!"); uploadForm.style.display="none"; loadNovels(); })
-            .catch(err=>alert(err.message));
+            db.collection("novels").add({
+                title, author, description: desc, coverURL: coverInfo.cdnUrl, fileURL: fileInfo.cdnUrl, price
+            }).then(()=>{ 
+                alert("Novel uploaded!"); 
+                uploadForm.style.display="none"; 
+                loadNovels(); 
+            }).catch(err=>alert(err.message));
         });
     });
 }
