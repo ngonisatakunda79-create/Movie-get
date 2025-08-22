@@ -1,76 +1,115 @@
-body, html { 
-    margin: 0; 
-    padding: 0; 
-    height: 100%; 
-    font-family: Arial, sans-serif; 
-}
-#map { 
-    height: 100%; 
-    width: 100%; 
+/* ---------------- BODY ---------------- */
+body {
+    background: #0d0d0d;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
-#vipBtn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-    background: #4CAF50;
-    color: white;
+/* ---------------- HEADER ---------------- */
+header {
+    background: #1a1a1a;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 0 10px #00ffea;
+}
+
+header h1 {
+    color: #00ffea;
+    margin: 0;
+}
+
+/* ---------------- BUTTONS ---------------- */
+button {
+    background: #00ffea;
+    color: #000;
     border: none;
-    padding: 12px 18px;
-    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
     cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    margin: 0.5rem;
+    transition: 0.2s;
 }
 
-#vipForm {
-    display: none;
-    position: absolute;
-    top: 60px;
-    right: 10px;
-    width: 240px;
-    background: #fff;
-    padding: 15px;
+button:hover {
+    background: #00d4c4;
+}
+
+/* ---------------- SEARCH BOX ---------------- */
+#searchBox {
+    width: 90%;
+    margin: 1rem auto;
+    display: block;
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #00ffea;
+    background: #111;
+    color: #fff;
+}
+
+/* ---------------- UPLOAD FORM ---------------- */
+#uploadForm {
+    background: #111;
+    padding: 1rem;
+    margin: 1rem;
+    border: 1px solid #00ffea;
     border-radius: 10px;
-    z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
 
-#vipForm h3 {
-    margin-top: 0;
-    font-size: 16px;
-    color: #333;
+#uploadForm input,
+#uploadForm textarea {
+    width: 100%;
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #00ffea;
+    background: #222;
+    color: #fff;
+}
+
+/* ---------------- NOVEL GRID ---------------- */
+.novel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+/* ---------------- NOVEL CARD ---------------- */
+.novel-card {
+    background: #222;
+    border: 1px solid #00ffea;
+    border-radius: 10px;
+    overflow: hidden;
     text-align: center;
+    padding: 0.5rem;
+    transition: 0.2s;
 }
 
-#vipForm input {
-    width: 100%;
-    padding: 8px;
-    margin: 8px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
+.novel-card:hover {
+    box-shadow: 0 0 15px #00ffea;
 }
 
-#vipForm button {
+.novel-card img {
     width: 100%;
-    padding: 8px;
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 1px solid #00ffea;
+}
+
+.novel-card h3,
+.novel-card p {
+    margin: 0.5rem 0;
+}
+
+/* ---------------- DOWNLOAD LINKS ---------------- */
+#novelList a {
+    text-decoration: none;
+    color: #00ffea;
     font-weight: bold;
 }
 
-#vipForm button:hover {
-    background: #45a049;
-}
-
-#message {
-    color: red;
-    font-size: 13px;
-    margin-top: 5px;
-    text-align: center;
+#novelList a:hover {
+    color: #00d4c4;
 }
