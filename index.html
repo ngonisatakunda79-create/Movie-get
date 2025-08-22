@@ -22,8 +22,8 @@
     <input type="text" id="novelTitle" placeholder="Title">
     <input type="text" id="novelAuthor" placeholder="Author">
     <textarea id="novelDesc" placeholder="Description"></textarea>
-    <input type="hidden" role="uploadcare-uploader" id="coverUpload" data-public-key="f77e2afd69e72fdae840" data-images-only>
-    <input type="hidden" role="uploadcare-uploader" id="fileUpload" data-public-key="f77e2afd69e72fdae840">
+    <input type="hidden" role="uploadcare-uploader" id="coverUpload" data-public-key="f77e2afd69e72fdae840" data-images-only data-max-size="52428800">
+    <input type="hidden" role="uploadcare-uploader" id="fileUpload" data-public-key="f77e2afd69e72fdae840" data-max-size="1073741824">
     <input type="number" id="novelPrice" placeholder="Price ($)">
     <button onclick="uploadNovel()">Upload</button>
 </div>
