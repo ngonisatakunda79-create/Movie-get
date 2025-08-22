@@ -1,24 +1,37 @@
 <!DOCTYPE html>
-<html>
-FOR PIN WHATSAPP (+263 711663853)
+<html lang="en">
 <head>
-    <title>Zimbabwe Route Tracker</title>
-    <link rel="stylesheet" href="style.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Novel Store</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=PP-L-579888726161"></script>
 </head>
 <body>
-    <button id="vipBtn">Enter VIP Password</button>
-    <div id="vipForm">
-        <h3>Enter VIP Password</h3>
-        <input type="text" id="vipInput" placeholder="Enter password">
-        <button id="submitVIP">Unlock Map</button>
-        <p id="message"></p>
-    </div>
-    <div id="map"></div>
+<header>
+<h1>Novel Store</h1>
+<button onclick="showUploadForm()">Upload Novel (VIP)</button>
+</header>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-    <script src="app.js"></script>
+<main>
+<div id="uploadForm" style="display:none;">
+    <h3>Upload Novel</h3>
+    <input type="text" id="novelTitle" placeholder="Title">
+    <input type="text" id="novelAuthor" placeholder="Author">
+    <textarea id="novelDesc" placeholder="Description"></textarea>
+    <input type="hidden" role="uploadcare-uploader" id="coverUpload" data-public-key="f77e2afd69e72fdae840" data-images-only>
+    <input type="hidden" role="uploadcare-uploader" id="fileUpload" data-public-key="f77e2afd69e72fdae840">
+    <input type="number" id="novelPrice" placeholder="Price ($)">
+    <button onclick="uploadNovel()">Upload</button>
+</div>
+
+<input type="text" id="searchBox" placeholder="Search novels by title or author">
+<div id="novelList" class="novel-grid"></div>
+</main>
+
+<script src="app.js"></script>
 </body>
 </html>
