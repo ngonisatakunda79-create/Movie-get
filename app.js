@@ -1,129 +1,115 @@
-let map, userMarker, destinationMarker, routingControl;
-let userPanned = false;
+// ---------------- FIREBASE CONFIG ----------------
+const firebaseConfig = {
+    apiKey: "AIzaSyAkPqrjrXqtdDxxBhLgRXjRfPciw7XtAj4",
+    authDomain: "novely-4421d.firebaseapp.com",
+    projectId: "novely-4421d",
+    storageBucket: "novely-4421d.firebasestorage.app",
+    messagingSenderId: "597056434307",
+    appId: "1:597056434307:android:92ff7d136f742cf173ebb6"
+};
 
-// Sample POIs in Zimbabwe (replace or expand as needed)
-const POIs = [
-    {name: "St. Mary's School", lat: -17.825, lng: 31.050, type:"school"},
-    {name: "Total Fuel Station", lat: -17.826, lng: 31.051, type:"fuel"},
-    {name: "Main Shop", lat: -17.827, lng: 31.052, type:"shop"},
-    {name: "Growth Point A", lat: -17.828, lng: 31.053, type:"growth"},
-    {name: "Community School", lat: -17.829, lng: 31.054, type:"school"},
-    {name: "Shell Fuel Station", lat: -17.830, lng: 31.055, type:"fuel"},
-    {name: "Village Shop", lat: -17.831, lng: 31.056, type:"shop"},
-    {name: "Growth Point B", lat: -17.832, lng: 31.057, type:"growth"}
-];
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-// Initialize map directly on page load
-window.addEventListener("load", initMap);
+// ---------------- DOM ELEMENTS ----------------
+const novelList = document.getElementById("novelList");
+const searchBox = document.getElementById("searchBox");
+const uploadForm = document.getElementById("uploadForm");
 
-function initMap() {
-    if(!navigator.geolocation) { alert("Geolocation not supported."); return; }
-
-    navigator.geolocation.getCurrentPosition(pos => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-
-        map = L.map('map', {
-            zoomControl: true,
-            dragging: true,
-            doubleClickZoom: true,
-            scrollWheelZoom: true
-        }).setView([lat, lng], 17);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
-
-        // User marker
-        userMarker = L.marker([lat, lng], {
-            title: "You",
-            icon: L.icon({
-                iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Flat_tick_icon_green.svg',
-                iconSize: [25,25]
-            })
-        }).addTo(map);
-
-        // Add POIs
-        POIs.forEach(poi => {
-            let iconUrl = poi.type === 'school' ? 'https://upload.wikimedia.org/wikipedia/commons/5/51/School_icon.png' :
-                          poi.type === 'fuel' ? 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Fuel_icon.png' :
-                          poi.type === 'shop' ? 'https://upload.wikimedia.org/wikipedia/commons/6/6f/Shop_icon.png' :
-                          'https://upload.wikimedia.org/wikipedia/commons/2/2f/Growth_icon.png';
-            L.marker([poi.lat, poi.lng], {
-                title: poi.name,
-                icon: L.icon({iconUrl: iconUrl, iconSize:[25,25]})
-            }).addTo(map).bindPopup(poi.name);
-        });
-
-        // Center-on-me button
-        const centerControl = L.control({position: 'topleft'});
-        centerControl.onAdd = function() {
-            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-            div.innerHTML = '📍';
-            div.style.backgroundColor = 'white';
-            div.style.width = '34px';
-            div.style.height = '34px';
-            div.style.textAlign = 'center';
-            div.style.cursor = 'pointer';
-            div.title = "Center on me";
-            div.onclick = () => {
-                map.setView(userMarker.getLatLng(), 17);
-                userPanned = false;
-            };
-            return div;
-        };
-        centerControl.addTo(map);
-
-        // Click to set destination
-        map.on('click', e => {
-            const destLat = e.latlng.lat;
-            const destLng = e.latlng.lng;
-
-            if(destinationMarker) map.removeLayer(destinationMarker);
-
-            destinationMarker = L.marker([destLat, destLng], {
-                title: "Destination",
-                icon: L.icon({
-                    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/38/Red_flag_icon.svg',
-                    iconSize: [25,25]
-                })
-            }).addTo(map);
-
-            if(routingControl) map.removeControl(routingControl);
-
-            routingControl = L.Routing.control({
-                waypoints: [
-                    L.latLng(userMarker.getLatLng().lat, userMarker.getLatLng().lng),
-                    L.latLng(destLat, destLng)
-                ],
-                lineOptions: {styles:[{color:'red', opacity:0.9, weight:6}]},
-                routeWhileDragging: false,
-                addWaypoints: false,
-                draggableWaypoints: false,
-                createMarker: () => null
-            }).addTo(map);
-        });
-
-        // Track user location
-        navigator.geolocation.watchPosition(p => {
-            const newLat = p.coords.latitude;
-            const newLng = p.coords.longitude;
-
-            userMarker.setLatLng([newLat, newLng]);
-
-            if(!userPanned) map.panTo([newLat, newLng], {animate:true});
-
-            if(routingControl && destinationMarker) {
-                routingControl.setWaypoints([
-                    L.latLng(newLat, newLng),
-                    L.latLng(destinationMarker.getLatLng().lat, destinationMarker.getLatLng().lng)
-                ]);
-            }
-        }, err => alert("Error getting location: "+err.message), {enableHighAccuracy:true, maximumAge:0, timeout:5000});
-
-        map.on('dragstart', () => userPanned = true);
-        map.on('zoomstart', () => userPanned = true);
-
-    }, err => alert("Error getting initial location: "+err.message), {enableHighAccuracy:true});
+// ---------------- LOAD NOVELS ----------------
+async function loadNovels() {
+    const snapshot = await db.collection("novels").get();
+    const novels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    displayNovels(novels);
 }
+
+function displayNovels(novels) {
+    novelList.innerHTML = "";
+    novels.forEach(novel => {
+        const card = document.createElement("div");
+        card.className = "novel-card";
+        card.innerHTML = `
+            <img src="${novel.coverURL}" alt="${novel.title}">
+            <h3>${novel.title}</h3>
+            <p>By ${novel.author}</p>
+            <p>${novel.price > 0 ? "$" + novel.price : "Free"}</p>
+            <div id="paypal-button-${novel.id}"></div>
+            <div id="download-${novel.id}" style="display:none;">
+                <a href="${novel.fileURL}" download>Download</a>
+            </div>
+        `;
+        novelList.appendChild(card);
+
+        if (novel.price > 0) setupPayPalButton(novel);
+        else document.getElementById(`download-${novel.id}`).style.display = "block";
+    });
+}
+
+// ---------------- PAYPAL ----------------
+function setupPayPalButton(novel) {
+    paypal.Buttons({
+        createOrder: (data, actions) => {
+            return actions.order.create({
+                purchase_units: [{ amount: { value: novel.price.toString() } }]
+            });
+        },
+        onApprove: (data, actions) => {
+            return actions.order.capture().then(details => {
+                alert(`Payment completed by ${details.payer.name.given_name}`);
+                unlockNovel(novel.id);
+
+                db.collection("purchases").add({
+                    novelId: novel.id,
+                    payer: details.payer.email_address,
+                    paid: true,
+                    timestamp: new Date()
+                });
+            });
+        }
+    }).render(`#paypal-button-${novel.id}`);
+}
+
+// ---------------- VIP UPLOAD ----------------
+function showUploadForm() {
+    const pass = prompt("Enter VIP password to upload:");
+    if (pass && pass.toLowerCase() === "ngonisa") uploadForm.style.display = "block";
+    else alert("Incorrect password.");
+}
+
+function uploadNovel() {
+    const title = document.getElementById("novelTitle").value;
+    const author = document.getElementById("novelAuthor").value;
+    const desc = document.getElementById("novelDesc").value;
+    const price = parseFloat(document.getElementById("novelPrice").value) || 0;
+
+    const cover = uploadcare.Widget("[role=uploadcare-uploader]#coverUpload").value();
+    const file = uploadcare.Widget("[role=uploadcare-uploader]#fileUpload").value();
+
+    if(!title || !author || !desc || !cover || !file){ alert("Fill all fields."); return; }
+
+    cover.done(url => {
+        file.done(furl => {
+            db.collection("novels").add({ title, author, description: desc, coverURL:url, fileURL:furl, price })
+            .then(()=>{ alert("Novel uploaded!"); uploadForm.style.display="none"; loadNovels(); })
+            .catch(err=>alert(err.message));
+        });
+    });
+}
+
+// ---------------- UNLOCK NOVEL ----------------
+function unlockNovel(novelId) {
+    const downloadDiv = document.getElementById(`download-${novelId}`);
+    if(downloadDiv) downloadDiv.style.display = "block";
+}
+
+// ---------------- SEARCH ----------------
+searchBox.addEventListener("input", async ()=>{
+    const query = searchBox.value.toLowerCase();
+    const snapshot = await db.collection("novels").get();
+    const novels = snapshot.docs.map(doc=>({id:doc.id,...doc.data()}))
+        .filter(n => n.title.toLowerCase().includes(query) || n.author.toLowerCase().includes(query));
+    displayNovels(novels);
+});
+
+// ---------------- INITIAL LOAD ----------------
+loadNovels();
